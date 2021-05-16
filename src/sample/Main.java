@@ -87,6 +87,7 @@ public class Main extends Application {
                             }
                     });
 
+
             // Button VS PLAYER
             Button vsPlayer = new Button("Contre Joueur");
             vsPlayer.setFont(fontModes);
@@ -116,6 +117,10 @@ public class Main extends Application {
             root.setMargin(modes, new Insets((-10),0,0,0));
             root.getChildren().add(modes);
 
+        CheckBox c1 = new CheckBox("Facile");
+        CheckBox c2 = new CheckBox("Difficile");
+        root.getChildren().addAll(c1,c2);
+        c1.setIndeterminate(true);
 
             // Button 2
             Button buttonRules = new Button("Règles du Jeu");
