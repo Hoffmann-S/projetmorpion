@@ -21,6 +21,7 @@ public class Morpion extends Application {
     private Tile[][] til = new Tile[3][3];
 
     private Pane root = new Pane();
+    private static Stage guiStage;
 
     private Parent createContent() {
         root.setPrefSize(600, 600);
@@ -45,6 +46,12 @@ public class Morpion extends Application {
         primaryStage.setTitle("Morpion");
         primaryStage.show();
     }
+
+    public static Stage getStage()
+    {
+        return guiStage;
+    }
+
 
     private boolean verifVainqueur() {
         if(checkRows() == true || checkColumns() == true || checkDiagonals() == true) {

@@ -1,6 +1,9 @@
 package sample;
 
+import IA.MultiLayerPerceptron;
 import javafx.application.Application;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.css.Size;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -14,14 +17,17 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
+import javafx.scene.text.*;
 import javafx.stage.Stage;
 import javafx.scene.effect.DropShadow;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 public class Main extends Application {
+
+    private Stage progressStage;
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -29,6 +35,17 @@ public class Main extends Application {
             //parametres des boutons
             Background backgroundBoutons = new Background(new BackgroundFill(Color.DARKCYAN, CornerRadii.EMPTY, Insets.EMPTY));
             Font fontBoutons = Font.font("Arial", FontWeight.BOLD, 30);
+
+            TaskService service = new TaskService();
+            service.setOnScheduled(e -> progressStage.show());
+            service.setOnSucceeded(e -> progressStage.hide());
+            ProgressBar progressBar = new ProgressBar();
+            progressBar.progressProperty().bind(service.progressProperty());
+
+            progressStage = new Stage();
+            progressStage.setScene(new Scene(new StackPane(progressBar), 300, 100));
+            progressStage.setAlwaysOnTop(true);
+            progressStage.setTitle("Apprentissage en cours..");
 
 
             VBox root = new VBox();
@@ -87,6 +104,34 @@ public class Main extends Application {
                             }
                     });
 
+        vsIa.addEventHandler(MouseEvent.MOUSE_CLICKED,
+                new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent e) {
+                        vsIa.setEffect(null);
+                        vsIa.setBackground(new Background(new BackgroundFill(Color.DARKGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+                        /*Service<String> service = new Service<String>(){
+
+                            @Override
+                            protected Task<String> createTask() {
+                                return new Task<String>() {
+                                    @Override
+                                    protected String call() throws Exception {
+                                        System.out.println("Apprentisage en cours...");
+                                        Thread.sleep(1000);
+                                        System.out.println("Fini!");
+                                        return null;
+                                    }
+
+                                };
+                            }
+                        };
+
+                         */
+                        service.restart();
+                    }
+                });
+
 
             // Button VS PLAYER
             Button vsPlayer = new Button("Contre Joueur");
@@ -114,13 +159,22 @@ public class Main extends Application {
                             }
                     });
 
+
             root.setMargin(modes, new Insets((-10),0,0,0));
             root.getChildren().add(modes);
+            ToggleGroup group = new ToggleGroup();
+            RadioButton c1 = new RadioButton("Facile");
+            RadioButton c2 = new RadioButton("Difficile");
+            c1.setToggleGroup(group);
+            c2.setToggleGroup(group);
+            c1.setSelected(true);
 
-        CheckBox c1 = new CheckBox("Facile");
-        CheckBox c2 = new CheckBox("Difficile");
-        root.getChildren().addAll(c1,c2);
-        c1.setIndeterminate(true);
+            HBox vbButtons = new HBox();
+            vbButtons.setAlignment(Pos.TOP_CENTER);
+            vbButtons.setSpacing(50);
+            vbButtons.setPadding(new Insets(0, 20, 10, 20));
+            vbButtons.getChildren().addAll(c1,c2);
+            root.getChildren().add(vbButtons);
 
             // Button 2
             Button buttonRules = new Button("Règles du Jeu");
@@ -177,6 +231,49 @@ public class Main extends Application {
                             }
                     });
 
+            HBox parametres = new HBox();
+            parametres.setSpacing(10);
+            parametres.setPadding(new Insets(15,20, 10,10));
+            Text t = new Text("Facile:");
+            Text t1 = new Text("Difficile:");
+            Label label1 = new Label("h:");
+            Label label2 = new Label("Learning Rate:");
+            Label label3 = new Label("l:");
+
+            TextField h = new TextField();
+            TextField learningRate = new TextField();
+            TextField l = new TextField();
+            h.setMaxWidth(80);
+            learningRate.setMaxWidth(80);
+            l.setMaxWidth(80);
+            parametres.getChildren().addAll(label1, h, label2, learningRate, label3, l);
+
+
+            buttonSettings.addEventHandler(MouseEvent.MOUSE_CLICKED,
+                new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent e) {
+
+                        StackPane reglageLayout = new StackPane();
+
+                        reglageLayout.getChildren().add(parametres);
+
+                        Scene reglageScene = new Scene(reglageLayout, 500, 200);
+                        reglageLayout.getChildren().add(t);
+                        reglageLayout.setAlignment(t, Pos.TOP_CENTER);
+                        // New window (Stage)
+                        Stage newWindow = new Stage();
+                        newWindow.setTitle("Reglage");
+                        newWindow.setScene(reglageScene);
+
+                        // Set position of second window, related to primary window.
+                        newWindow.setX(primaryStage.getX() + 200);
+                        newWindow.setY(primaryStage.getY() + 100);
+
+                        newWindow.show();
+                    }
+                });
+
             // Button 4
             Button buttonExit = new Button("Quitter");
 
@@ -218,8 +315,29 @@ public class Main extends Application {
             primaryStage.setTitle("Tic-Tac-Toe");
             primaryStage.setScene(scene);
             primaryStage.show();
+
+
     }
 
+    private class TaskService extends Service<Void> {
+
+        @Override
+        protected Task<Void> createTask() {
+            Task<Void> task = new Task<Void>() {
+
+                @Override
+                protected Void call() throws Exception {
+
+                    for (int p = 0; p < 100; p++) {
+                        Thread.sleep(40);
+                        updateProgress(p, 100);
+                    }
+                    return null;
+                }
+            };
+            return task;
+        }
+    }
 
     public static void main(String[] args) {
         launch(args);
